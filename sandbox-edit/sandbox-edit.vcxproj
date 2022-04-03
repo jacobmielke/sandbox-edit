@@ -149,6 +149,9 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="camera.h" />
+    <ClInclude Include="filesystem.h" />
+    <ClInclude Include="stb_image.h" />
     <ClInclude Include="shader.h" />
   </ItemGroup>
   <ItemGroup>
