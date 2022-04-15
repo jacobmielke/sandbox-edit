@@ -41,12 +41,21 @@
     <ClInclude Include="model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="heightmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="f.glsl">
+    <None Include="f_basic.glsl">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="v.glsl">
+    <None Include="v_basic.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="heightmap_vertex.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="heightmap_fragment.glsl">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
