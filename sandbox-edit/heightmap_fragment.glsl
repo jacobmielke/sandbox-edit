@@ -19,10 +19,9 @@ void main()
     }
     if ((h >= 0.6f) && (h < 0.8f))
     {
-        FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.5);
+        FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), (h*h / (h+1.0f)));
 
     }
-
     if ((h >= 0.8f) && (h < 1.2f))
     {
         FragColor = texture(texture2, TexCoord);
@@ -30,7 +29,7 @@ void main()
 
     if ((h >= 1.2f) && (h < 1.5f))
     {
-        FragColor = mix(texture(texture2, TexCoord), texture(texture3, TexCoord), 0.5);
+        FragColor = mix(texture(texture2, TexCoord), texture(texture3, TexCoord), (h*h / (h+1.0f)));
 
     }
     if ((h >= 1.5f) && (h <= 2f))
