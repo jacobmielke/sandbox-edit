@@ -39,15 +39,9 @@ public:
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, texture[2]);
 
-
-		//        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		for (unsigned strip = 0; strip < numStrips; strip++)
 		{
-			glDrawElements(GL_TRIANGLE_STRIP,   // primitive type
-				numTrisPerStrip + 2,   // number of indices to render
-				GL_UNSIGNED_INT,     // index data type
-				(void*)(sizeof(unsigned) * (numTrisPerStrip + 2) * strip)); // offset to starting index
-
+			glDrawElements(GL_TRIANGLE_STRIP, numTrisPerStrip + 2, GL_UNSIGNED_INT, (void*)(sizeof(unsigned) * (numTrisPerStrip + 2) * strip));
 		}
 
 	}
@@ -79,7 +73,7 @@ private:
 				unsigned char* pixelOffset = data + (j + width * i) * bytePerPixel;
 				unsigned char y = pixelOffset[0];
 
-				// vertex
+				// Each Vetex
 				vertices.push_back(-height / 2.0f + height * i / (float)height);   // vx
 				vertices.push_back((int)y * yScale - yShift);   // vy
 				vertices.push_back(-width / 2.0f + width * j / (float)width);   // vz
@@ -87,7 +81,7 @@ private:
 		}
 		std::cout << "Loaded " << vertices.size() / 3 << " vertices" << std::endl;
 		stbi_image_free(data);
-		
+
 		// Indices
 		for (unsigned i = 0; i < height - 1; i += res)
 		{
@@ -99,7 +93,7 @@ private:
 				}
 			}
 		}
-		
+
 		std::cout << "Loaded " << indices.size() << " indices" << std::endl;
 		numStrips = (height - 1) / res;
 		numTrisPerStrip = (width / res) * 2 - 2;
@@ -107,7 +101,6 @@ private:
 		std::cout << "Created " << numStrips * numTrisPerStrip << " triangles total" << std::endl;
 
 		// OpenGL buffer Setup
-		// first, configure the cube's VAO (and terrainVBO + terrainIBO)
 		glGenVertexArrays(1, &terrainVAO);
 		glBindVertexArray(terrainVAO);
 		std::cout << "Made Vertex" << std::endl;
@@ -115,7 +108,6 @@ private:
 		glBindBuffer(GL_ARRAY_BUFFER, terrainVBO);
 		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW);
 		std::cout << "Made VBO" << std::endl;
-		// position attribute
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
 		std::cout << "Made Position" << std::endl;
@@ -127,25 +119,34 @@ private:
 
 	void load_texture()
 	{
+		// RGB mode
+		GLenum format = GL_RGB;
 		// Grass Texture
 		glGenTextures(1, &texture[0]);
 		glBindTexture(GL_TEXTURE_2D, texture[0]); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
-		// Loop if pass 1
+
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		
+
 		// Filters
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		// load image, create texture and generate mipmaps
 
-		unsigned char* data = stbi_load("textures/512x512/Grass/Grass_11-512x512.png", &t_width, &t_height, &t_nrChannels, 0);
+
+		unsigned char* data = stbi_load("textures/512x512/Grass/Grass_12-512x512.png", &t_width, &t_height, &t_nrChannels, 0);
 		if (data)
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, t_width, t_height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			if (t_nrChannels == 1)
+				format = GL_RED;
+			else if (t_nrChannels == 3)
+				format = GL_RGB;
+			else if (t_nrChannels == 4)
+				format = GL_RGBA;
+
+			glTexImage2D(GL_TEXTURE_2D, 0, format, t_width, t_height, 0, format, GL_UNSIGNED_BYTE, data);
 			glGenerateMipmap(GL_TEXTURE_2D);
-			std::cout << "Loaded terrain texture " <<t_width << "x" << t_height << std::endl;
-				
+			std::cout << "Loaded terrain texture " << t_width << "x" << t_height << std::endl;
+
 		}
 		else
 		{
@@ -153,22 +154,26 @@ private:
 		}
 		stbi_image_free(data);
 
-		// Mid Texture
 		glGenTextures(1, &texture[1]);
 		glBindTexture(GL_TEXTURE_2D, texture[1]); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
-		// Loop if pass 1
+
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-		// Filters
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		// load image, create texture and generate mipmaps
 
-		data = stbi_load("textures/512x512/Grass/Grass_08-512x512.png", &t_width, &t_height, &t_nrChannels, 0);
+		data = stbi_load("textures/512x512/Grass/Grass_19-512x512.png", &t_width, &t_height, &t_nrChannels, 0);
 		if (data)
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, t_width, t_height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			if (t_nrChannels == 1)
+				format = GL_RED;
+			else if (t_nrChannels == 3)
+				format = GL_RGB;
+			else if (t_nrChannels == 4)
+				format = GL_RGBA;
+
+			glTexImage2D(GL_TEXTURE_2D, 0, format, t_width, t_height, 0, format, GL_UNSIGNED_BYTE, data);
 			glGenerateMipmap(GL_TEXTURE_2D);
 			std::cout << "Loaded terrain texture " << t_width << "x" << t_height << std::endl;
 
@@ -182,19 +187,25 @@ private:
 		// Rock Texture
 		glGenTextures(1, &texture[2]);
 		glBindTexture(GL_TEXTURE_2D, texture[2]); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
-		// Loop if pass 1
+
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 		// Filters
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		// load image, create texture and generate mipmaps
 
 		data = stbi_load("textures/512x512/Stone/Stone_06-512x512.png", &t_width, &t_height, &t_nrChannels, 0);
 		if (data)
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, t_width, t_height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			if (t_nrChannels == 1)
+				format = GL_RED;
+			else if (t_nrChannels == 3)
+				format = GL_RGB;
+			else if (t_nrChannels == 4)
+				format = GL_RGBA;
+
+			glTexImage2D(GL_TEXTURE_2D, 0, format, t_width, t_height, 0, format, GL_UNSIGNED_BYTE, data);
 			glGenerateMipmap(GL_TEXTURE_2D);
 			std::cout << "Loaded terrain texture " << t_width << "x" << t_height << std::endl;
 
