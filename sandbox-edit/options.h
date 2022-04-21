@@ -1,6 +1,6 @@
 #pragma once
 bool WIREFRAME = false;
-
+bool LEFT_PRESSED = false;
 
 // 2 - Object Place
 // 1 - Raise

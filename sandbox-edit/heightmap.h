@@ -46,6 +46,19 @@ public:
 
 	}
 
+	void scan_heightmap(float mouse_x, float mouse_z)
+	{
+		for (int i = 0; i < vertices.size(); i += 3)
+		{
+			if( (mouse_x >= vertices[i] - 4 && mouse_x <= vertices[i] + 4) && (mouse_z >= vertices[i+2] - 4 && mouse_z <= vertices[i+2] + 4) )
+			{
+				vertices[i + 1] += 0.1f;
+			}
+		}
+		glBindBuffer(GL_ARRAY_BUFFER, terrainVBO);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), &vertices[0]);
+	}
+
 private:
 	void load_heightmap(const char* filename, int* w, int* h, int* nC)
 	{
@@ -106,14 +119,14 @@ private:
 		std::cout << "Made Vertex" << std::endl;
 		glGenBuffers(1, &terrainVBO);
 		glBindBuffer(GL_ARRAY_BUFFER, terrainVBO);
-		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_DYNAMIC_DRAW);
 		std::cout << "Made VBO" << std::endl;
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
 		std::cout << "Made Position" << std::endl;
 		glGenBuffers(1, &terrainIBO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, terrainIBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned), &indices[0], GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned), &indices[0], GL_DYNAMIC_DRAW);
 		std::cout << "Made IBO" << std::endl;
 	}
 
