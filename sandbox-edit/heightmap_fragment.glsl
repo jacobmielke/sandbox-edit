@@ -32,7 +32,8 @@ void main()
         FragColor = mix(texture(texture2, TexCoord), texture(texture3, TexCoord), (h*h / (h+1.0f)));
 
     }
-    if ((h >= 1.5f) && (h <= 2f))
+
+    if ((h >= 1.5f) && (h <= 2.0f))
     {
         FragColor = texture(texture3, TexCoord);
     }

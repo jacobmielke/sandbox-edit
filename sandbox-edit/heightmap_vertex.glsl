@@ -8,11 +8,17 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
+uniform float delta_time;
+in float mouse_x;
+in float mouse_z;
+
 void main()
 {
     Height = aPos.y;
+    
     Position = (view * model * vec4(aPos, 1.0)).xyz;
     TexCoord.x = aPos.x / 8.0f;
-    TexCoord.y = aPos.z / 8.0f;
+    TexCoord.y = aPos.z / 8.0f; 
     gl_Position = projection * view * model * vec4(aPos, 1.0);
+
 }

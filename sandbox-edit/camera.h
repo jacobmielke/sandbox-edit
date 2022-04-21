@@ -20,6 +20,9 @@ enum Camera_State {
 };
 
 // Default camera values
+// Settings
+const unsigned int SCR_WIDTH = 1600;
+const unsigned int SCR_HEIGHT = 900;
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
 const float SPEED = 2.5f;
@@ -42,9 +45,20 @@ public:
 	float Zoom;
 	float Yaw;
 	float Pitch;
+	float lastX = SCR_WIDTH / 2.0f;
+	float lastY = SCR_HEIGHT / 2.0f;
 	int camera_state = ROAM;
 
-	// 
+	// Screen option
+	float xpos;
+	float ypos;
+
+	// World Coords
+	float w_xpos;
+	float w_ypos;
+	float w_zpos;
+
+	// Construct 
 	Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
 	{
 		Position = position;
@@ -67,6 +81,7 @@ public:
 	void ProcessKeyboard(Camera_Movement, float);
 	void ProcessMouseMovement(float, float, GLboolean);
 	void ProcessMouseScroll(float);
+	void get_world_space(glm::mat4, glm::mat4);
 
 private:
 	void updateCameraVectors();

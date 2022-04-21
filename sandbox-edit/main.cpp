@@ -19,30 +19,20 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow* window);
+void processInput(GLFWwindow* window, Heightmap);
 
-// Settings
-const unsigned int SCR_WIDTH = 1600;
-const unsigned int SCR_HEIGHT = 900;
 
 // Camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
-
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 bool firstMouse = true;
-float yaw = -90.0f;	
-float pitch = 0.0f;
-float fov = 45.0f;
 
 // Delta time
 float deltaTime = 0.0f;	
 float lastFrame = 0.0f;
-
 
 int main()
 {
@@ -54,7 +44,7 @@ int main()
 
        
     // Create window
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Sandbox Terrain", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -84,7 +74,7 @@ int main()
     Shader heightmap_shader("heightmap_vertex.glsl", "heightmap_fragment.glsl");
     // Load model
     Model ourModel("models/tree.obj");
-    Heightmap height_map("heightmaps/small.jpg");
+    Heightmap height_map("heightmaps/32x32.png");
 
     // Set heightmaps texture
     heightmap_shader.use();
@@ -98,9 +88,6 @@ int main()
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
-
-
-
 
     // Render loop
     while (!glfwWindowShouldClose(window))
@@ -120,6 +107,7 @@ int main()
         {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
+
         // GUI Setup
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -128,12 +116,15 @@ int main()
         if (!io.WantCaptureMouse)
         {
             // Input
-            processInput(window);
+            processInput(window, height_map);
+            if(camera.camera_state == BUILD && LEFT_PRESSED)
+                height_map.scan_heightmap(camera.Position.x, camera.Position.z);
         }
+
         // Camera and view transformation
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 500.0f);
         glm::mat4 view = camera.GetViewMatrix();
-
+        camera.get_world_space(projection, view); // Update mouse coords
 
         // Render Model
         ourShader.use();
@@ -148,17 +139,26 @@ int main()
         // Render Map
         heightmap_shader.use();
         glm::mat4 map = glm::mat4(1.0f);
+        //map = //glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         map = glm::scale(map, glm::vec3(WORLD_SCALE, WORLD_SCALE, WORLD_SCALE));
         heightmap_shader.setMat4("model", map);
         heightmap_shader.setMat4("projection", projection);
         heightmap_shader.setMat4("view", view);
+
+        // Set mouse
+        heightmap_shader.setFloat("delta_time", deltaTime);
+        heightmap_shader.setFloat("mouse_x", camera.w_xpos);
+        heightmap_shader.setFloat("mouse_z", camera.w_zpos);
         height_map.draw(heightmap_shader);
         
         // Draw Gui
         ImGui::Begin("Option Menu");
         if (ImGui::CollapsingHeader("World Settings"))
         {
-            ImGui::Text("Dimensions: %dx%d", height_map.width, height_map.height);
+            ImGui::Text("Dimensions: %d x %d", height_map.width, height_map.height);
+            ImGui::Text("Mouse Screen Coords: %f x %f", camera.xpos, camera.ypos);
+            ImGui::Text("Mouse World Coords: %f x %f x %f", camera.w_xpos, camera.w_ypos, camera.w_zpos);
+            ImGui::Text("Camera Coords: %f x %f x %f", camera.Position.x, camera.Position.y, camera.Position.z);
             ImGui::Checkbox("Wireframe mode", &WIREFRAME);
             ImGui::SliderFloat("World Scale", &WORLD_SCALE, 0.01f, 5.0f);
         }
@@ -194,7 +194,7 @@ int main()
 }
 
 // Inputs
-void processInput(GLFWwindow* window)
+void processInput(GLFWwindow* window, Heightmap map)
 {
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
     {
@@ -208,6 +208,16 @@ void processInput(GLFWwindow* window)
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         camera.camera_state = BUILD;
     }
+
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+    {
+        LEFT_PRESSED = true;
+    }
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
+    {
+        LEFT_PRESSED = false;
+    }
+
 
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -243,21 +253,20 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 // Mouse movement
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
-
-    float xpos = static_cast<float>(xposIn);
-    float ypos = static_cast<float>(yposIn);
+    camera.xpos = static_cast<float>(xposIn);
+    camera.ypos = static_cast<float>(yposIn);
 
     if (firstMouse)
     {
-        lastX = xpos;
-        lastY = ypos;
+        camera.lastX = camera.xpos;
+        camera.lastY = camera.ypos;
         firstMouse = false;
     }
 
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos;
-    lastX = xpos;
-    lastY = ypos;
+    float xoffset = camera.xpos - camera.lastX;
+    float yoffset = camera.lastY - camera.ypos;
+    camera.lastX = camera.xpos;
+    camera.lastY = camera.ypos;
 
     if (camera.camera_state == ROAM)
     {

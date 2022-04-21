@@ -57,3 +57,21 @@ void Camera::updateCameraVectors()
 	Right = glm::normalize(glm::cross(Front, WorldUp));
 	Up = glm::normalize(glm::cross(Right, Front));
 }
+
+void Camera::get_world_space(glm::mat4 proj_mat, glm::mat4 view_mat)
+{
+	float x = 2.0f * (xpos / SCR_WIDTH) - 1.0f;
+	float y = 2.0f * -(ypos / SCR_HEIGHT) + 1.0f; // Normalize
+
+
+	glm::vec4 screen_pos = glm::vec4(x, -y, -1.0f, 1.0f);
+
+	glm::mat4 projection = proj_mat * view_mat;
+	glm::mat4 projection_inv = inverse(projection);
+	glm::vec4 world_pos = projection_inv * screen_pos;
+
+	w_xpos = world_pos.x / world_pos.w;
+	w_ypos = world_pos.y / world_pos.w;
+	w_zpos = world_pos.z / world_pos.w;
+
+}
