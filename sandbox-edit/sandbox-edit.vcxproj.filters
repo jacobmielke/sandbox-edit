@@ -24,9 +24,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="glad.c">
-      <Filter>Resource Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\inc\imgui\imgui.cpp">
       <Filter>Source Files\imgui</Filter>
     </ClCompile>
@@ -46,6 +43,9 @@
       <Filter>Source Files\imgui</Filter>
     </ClCompile>
     <ClCompile Include="camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -110,6 +110,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="heightmap_fragment.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="f_tool.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="v_tool.glsl">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

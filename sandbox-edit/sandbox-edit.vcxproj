@@ -179,9 +179,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="f_basic.glsl" />
+    <None Include="f_tool.glsl" />
     <None Include="heightmap_vertex.glsl" />
     <None Include="heightmap_fragment.glsl" />
     <None Include="v_basic.glsl" />
+    <None Include="v_tool.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

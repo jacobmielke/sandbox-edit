@@ -19,6 +19,14 @@ enum Camera_State {
 	BUILD
 };
 
+struct ray
+{
+	glm::vec3 origin;
+	glm::vec3 dir;
+};
+
+
+
 // Default camera values
 // Settings
 const unsigned int SCR_WIDTH = 1600;
@@ -58,6 +66,9 @@ public:
 	float w_ypos;
 	float w_zpos;
 
+	//Tool
+	float tool_distance = 45.0f;
+
 	// Construct 
 	Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
 	{
@@ -82,6 +93,7 @@ public:
 	void ProcessMouseMovement(float, float, GLboolean);
 	void ProcessMouseScroll(float);
 	void get_world_space(glm::mat4, glm::mat4);
+	void ray_to_world();
 
 private:
 	void updateCameraVectors();

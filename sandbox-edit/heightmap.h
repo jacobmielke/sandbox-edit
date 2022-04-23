@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string>
 #include "shader.h"
-
+#include "options.h"
 class Heightmap
 {
 public:
@@ -44,19 +44,44 @@ public:
 			glDrawElements(GL_TRIANGLE_STRIP, numTrisPerStrip + 2, GL_UNSIGNED_INT, (void*)(sizeof(unsigned) * (numTrisPerStrip + 2) * strip));
 		}
 
+		glActiveTexture(GL_TEXTURE0);
 	}
 
-	void scan_heightmap(float mouse_x, float mouse_z)
+	void scan_heightmap(float mouse_x, float mouse_z, Camera camera)
 	{
 		for (int i = 0; i < vertices.size(); i += 3)
 		{
-			if( (mouse_x >= vertices[i] - 4 && mouse_x <= vertices[i] + 4) && (mouse_z >= vertices[i+2] - 4 && mouse_z <= vertices[i+2] + 4) )
+			if( (mouse_x >= vertices[i] - TOOL_RADIUS && mouse_x <= vertices[i] + TOOL_RADIUS) && (mouse_z >= vertices[i+2] - TOOL_RADIUS && mouse_z <= vertices[i+2] + TOOL_RADIUS) )
 			{
-				vertices[i + 1] += 0.1f;
+				glm::vec2 curr_vert = glm::vec2(vertices[i], vertices[i + 2]); // Current vert position
+				glm::vec2 dist_vec = glm::vec2(camera.w_xpos, camera.w_zpos) - curr_vert;
+				float mag = std::sqrt(dist_vec.x * dist_vec.x + dist_vec.y * dist_vec.y); // Distance between tool and vert
+
+				vertices[i + 1] += CURRENT_TOOL * (TOOL_INTENSITY / (mag * TOOL_OPACITY));
 			}
 		}
 		glBindBuffer(GL_ARRAY_BUFFER, terrainVBO);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), &vertices[0]);
+	}
+
+	void activate_textures(Shader shader)
+	{
+		shader.use();
+		shader.setInt("texture1", 0);
+		shader.setInt("texture2", 1);
+		shader.setInt("texture3", 2);
+	}
+
+	float grab_height(float x, float z)
+	{
+		float tol = 0.2f;
+		for (int i = 0; i < vertices.size(); i += 3)
+		{
+			if ((x >= vertices[i] - tol && x <= vertices[i] + tol) && (z >= vertices[i + 2] - tol && z <= vertices[i + 2] + tol))
+			{
+				return vertices[i + 1];
+			}
+		}
 	}
 
 private:
