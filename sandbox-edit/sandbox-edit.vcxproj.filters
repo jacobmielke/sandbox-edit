@@ -98,6 +98,9 @@
     <ClInclude Include="options.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="instance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="f_basic.glsl">
@@ -116,6 +119,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="v_tool.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="v_instance.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="f_instance.glsl">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

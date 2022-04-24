@@ -1,7 +1,6 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "stb_image.h"
@@ -15,6 +14,7 @@
 #include "model.h"
 #include "heightmap.h"
 #include "options.h"
+#include "instance.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -342,6 +342,7 @@ void draw_gui(Camera camera, Heightmap height_map)
             }
             ImGui::SliderInt("Intensity", &WORLD_PLACE_INTENSITY, WORLD_PLACE_INTENSITY_MIN, WORLD_PLACE_INTENSITY_MAX);
             ImGui::SliderFloat("Radius", &WORLD_PLACE_RADIUS, WORLD_PLACE_RADIUS_MIN, WORLD_PLACE_RADIUS_MAX);
+            ImGui::DragFloatRange2("Min/Max Height", &WORLD_SPAWN_MIN, &WORLD_SPAWN_MAX);
         }
     }
     

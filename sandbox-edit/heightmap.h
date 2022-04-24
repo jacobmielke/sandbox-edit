@@ -171,7 +171,7 @@ private:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 
-		unsigned char* data = stbi_load("textures/512x512/Grass/Grass_12-512x512.png", &t_width, &t_height, &t_nrChannels, 0);
+		unsigned char* data = stbi_load("textures/512x512/Grass/Grass_08-512x512.png", &t_width, &t_height, &t_nrChannels, 0);
 		if (data)
 		{
 			if (t_nrChannels == 1)
