@@ -71,12 +71,13 @@ int main()
     Shader model_shader("v_basic.glsl", "f_basic.glsl");
     Shader tool_shader("v_tool.glsl", "f_tool.glsl");
     Shader heightmap_shader("heightmap_vertex.glsl", "heightmap_fragment.glsl");
+    Shader instance_shader("v_instance.glsl", "f_instance.glsl");
 
     // Load models
     Model tree("models/tree_pine/Tree.obj");
     Model shovel("models/shovel/shovel.obj");
     Model bucket("models/bucket/bucket.obj");
-    Model grass("models/grass/grass.obj");
+    Model grass_model("models/grass/grass.obj");
 
     // Load heightmap
     Heightmap height_map("heightmaps/512x512.png");
@@ -85,9 +86,12 @@ int main()
     glm::mat4* model_list;
     model_list = create_mesh_matrix(WORLD_MAX_TREE, height_map.width, height_map.height, 120.0f, height_map);
 
-    glm::mat4* grass_list;
-    grass_list = create_mesh_matrix(WORLD_MAX_GRASS, height_map.width, height_map.height, 120.0f, height_map);
+    // Create instances list
 
+
+    Instance grass(WORLD_MAX_GRASS); // Create grass
+    grass.create_positions(height_map, height_map.width, height_map.height, 122, WORLD_SPAWN_MIN, WORLD_SPAWN_MAX);
+    grass.setup_buffer(grass_model);
 
     //imGUI
     ImGui::CreateContext();
@@ -144,11 +148,12 @@ int main()
             model_shader.setMat4("model", model_list[i]);
             tree.Draw(model_shader);
         }
-        for (unsigned int i = 0; i < WORLD_MAX_GRASS; i++)
-        {
-            model_shader.setMat4("model", grass_list[i]);
-            grass.Draw(model_shader);
-        }
+
+        // Render instances
+        instance_shader.use();
+        instance_shader.setMat4("projection", projection);
+        instance_shader.setMat4("view", view);
+        grass.draw(instance_shader, grass_model);
 
         //Shovel Time
         if (CURRENT_TOOL == -1)
@@ -182,6 +187,7 @@ int main()
 
         // Render Map
         heightmap_shader.use();
+        height_map.activate_textures(heightmap_shader);
         glm::mat4 map = glm::mat4(1.0f);
         map = glm::translate(map, glm::vec3(0.0f, 0.0f, 0.0f));
         map = glm::scale(map, glm::vec3(WORLD_SCALE, WORLD_SCALE, WORLD_SCALE));

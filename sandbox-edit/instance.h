@@ -15,7 +15,7 @@ public:
         this->inst_numb = n;
 	}
 
-    void create_positions(Heightmap hm, int w, int h, int inst_numb, float dt, float minh, float maxh)
+    void create_positions(Heightmap hm, int w, int h, float dt, float minh, float maxh)
     {
         model_matrix = create_mesh_matrix(inst_numb, w, h, dt, hm, minh, maxh); // Set the matrix
 
@@ -55,6 +55,7 @@ public:
         shader.setInt("texture_diffuse1", 0);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, model.textures_loaded[0].id); 
+        
         for (unsigned int i = 0; i < model.meshes.size(); i++)
         {
             glBindVertexArray(model.meshes[i].VAO);
@@ -72,12 +73,17 @@ private:
         float scale,x,y,z;
         for (unsigned int i = 0; i < inst_numb; i++) // For every instance generate random x and z points
         {
-            int width = w / 2;
-            int height = h / 2;
+            int width = w / 2 - 1;
+            int height = h / 2 - 1;
+
+            x = rand() % (width + 1 - (-width)) + (-width);
+            z = rand() % (height + 1 - (-height)) + (-height);
+            y = map.grab_height(x, z);
+
             while ((y > max_height) || (y < min_height))
             {
-                x = rand_float(-width, width);//rand() % (width + 1 - (-width)) + (-width);
-                z = rand_float(-height, height);//rand() % (height + 1 - (-height)) + (-height);
+                x = rand() % (width + 1 - (-width)) + (-width);
+                z = rand() % (height + 1 - (-height)) + (-height);
                 y = map.grab_height(x, z);
             }
 
@@ -101,4 +107,6 @@ private:
     {
         return ((b - a) * ((float)rand() / RAND_MAX)) + a;
     }
+
+
 };
