@@ -214,8 +214,12 @@ int main()
         if (PLACEABLE_POP)
         {
             PLACEABLE_POP = false;
-            place_objects.model_matrix.pop_back();
-            place_objects.index_stack.pop_back();
+            if (!place_objects.model_matrix.empty())
+            {
+                place_objects.model_matrix.pop_back();
+                place_objects.index_stack.pop_back();
+            }
+
         }
 
         model_shader.use();
