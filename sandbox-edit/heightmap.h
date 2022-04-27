@@ -17,12 +17,121 @@ public:
 	std::vector<float> vertices;
 	std::vector<unsigned> indices;
 	std::vector<glm::vec2> uv;
-
+	const char* filenames[5]{ "heightmaps/32x32.png" ,"heightmaps/128x128.png", "heightmaps/512x512.png", "heightmaps/small.png", "heightmaps/512x512.jpg" };
 	Heightmap(const char* path)
 	{
 		load_heightmap(path, &width, &height, &nChannels);
 		process_heightmap();
 		load_texture();
+	}
+
+	void reload_heightmap(const char* path)
+	{
+		glDeleteVertexArrays(1, &terrainVAO);
+		glDeleteBuffers(1, &terrainVBO);
+		glDeleteBuffers(1, &terrainIBO);
+		vertices.clear();
+		indices.clear();
+
+		load_heightmap(path, &width, &height, &nChannels);
+		process_heightmap();
+		load_texture();
+	}
+
+	void export_heightmap(int w, int h, int nC)
+	{
+		int randomt = glfwGetTimerValue();
+		string output_file = "export/";
+		output_file.append(to_string(randomt));
+		output_file.append(".txt");
+		ofstream file(output_file);
+		file << w << "\n";
+		file << h << "\n";
+		for (int i = 0; i < vertices.size(); i += 3)
+		{
+			file << vertices[i] << "\n";
+			file << vertices[i + 1] << "\n";
+			file << vertices[i + 2] << "\n";
+		}
+		file.close();
+		std::cout << "Wrote to file:" << output_file << std::endl;
+	}
+
+	void recreate_custom(string filename)
+	{
+		vertices.clear();
+		indices.clear();
+
+		ifstream file(filename);
+		int got_dim = 0;
+		if (file.is_open()) {
+			std::string line;
+			while (std::getline(file, line)) {
+				if (got_dim == 0)
+				{
+					width = stof(line);
+					got_dim++;
+				}
+				else if (got_dim == 1)
+				{
+					height =stof(line);
+					got_dim++;
+				}
+				else
+				{
+					vertices.push_back(stof(line));
+				}
+			}
+		}
+
+		if (file.eof() && !file.fail())
+		{
+			// Indices
+			for (unsigned i = 0; i < height - 1; i += res)
+			{
+				for (unsigned j = 0; j < width; j += res)
+				{
+					for (unsigned k = 0; k < 2; k++)
+					{
+						indices.push_back(j + width * (i + k * res));
+					}
+				}
+			}
+
+			std::cout << "Loaded " << indices.size() << " indices" << std::endl;
+			numStrips = (height - 1) / res;
+			numTrisPerStrip = (width / res) * 2 - 2;
+			std::cout << "Created lattice of " << numStrips << " strips with " << numTrisPerStrip << " triangles each" << std::endl;
+			std::cout << "Created " << numStrips * numTrisPerStrip << " triangles total" << std::endl;
+
+			// OpenGL buffer Setup
+			glDeleteVertexArrays(1, &terrainVAO);
+			glDeleteBuffers(1, &terrainVBO);
+			glDeleteBuffers(1, &terrainIBO);
+
+			glGenVertexArrays(1, &terrainVAO);
+			glBindVertexArray(terrainVAO);
+			std::cout << "Made Vertex" << std::endl;
+			glGenBuffers(1, &terrainVBO);
+			glBindBuffer(GL_ARRAY_BUFFER, terrainVBO);
+			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_DYNAMIC_DRAW);
+			std::cout << "Made VBO" << std::endl;
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+			glEnableVertexAttribArray(0);
+			std::cout << "Made Position" << std::endl;
+			glGenBuffers(1, &terrainIBO);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, terrainIBO);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned), &indices[0], GL_DYNAMIC_DRAW);
+			std::cout << "Made IBO" << std::endl;
+
+			load_texture();
+		}
+		else
+		{
+			file.close();
+			cout << "Bad data from: " << filename << endl;
+		}
+
 	}
 
 	void draw(Shader& shader)
@@ -56,8 +165,11 @@ public:
 				glm::vec2 curr_vert = glm::vec2(vertices[i], vertices[i + 2]); // Current vert position
 				glm::vec2 dist_vec = glm::vec2(camera.w_xpos, camera.w_zpos) - curr_vert;
 				float mag = std::sqrt(dist_vec.x * dist_vec.x + dist_vec.y * dist_vec.y); // Distance between tool and vert
-
-				vertices[i + 1] += CURRENT_TOOL * (TOOL_INTENSITY / (mag * TOOL_OPACITY));
+				if (mag < 1)
+				{
+					mag = 1;
+				}
+				vertices[i + 1] += CURRENT_TOOL * (TOOL_INTENSITY / (mag));
 			}
 		}
 		glBindBuffer(GL_ARRAY_BUFFER, terrainVBO);
@@ -74,7 +186,7 @@ public:
 
 	float grab_height(float x, float z)
 	{
-		float tol = 0.2f;
+		float tol = 1.2f;
 		for (int i = 0; i < vertices.size(); i += 3)
 		{
 			if ((x >= vertices[i] - tol && x <= vertices[i] + tol) && (z >= vertices[i + 2] - tol && z <= vertices[i + 2] + tol))
@@ -90,11 +202,11 @@ private:
 		data = stbi_load(filename, w, h, nC, 0);
 		if (data)
 		{
-			std::cout << "Loaded heightmap of size " << height << " x " << width << std::endl;
+			std::cout << "Loaded heightmap" << std::endl;
 		}
 		else
 		{
-			std::cout << "Failed to load heigtmap" << std::endl;
+			std::cout << "Failed to load HEIGHTMAP" << std::endl;
 		}
 
 	}
@@ -110,11 +222,9 @@ private:
 			{
 				unsigned char* pixelOffset = data + (j + width * i) * bytePerPixel;
 				unsigned char y = pixelOffset[0];
-
-				// Each Vetex
-				vertices.push_back(-height / 2.0f + height * i / (float)height);   // vx
-				vertices.push_back((int)y * yScale - yShift);   // vy
-				vertices.push_back(-width / 2.0f + width * j / (float)width);   // vz
+				vertices.push_back((float)i); // X
+				vertices.push_back((int)y * yScale - yShift); // Y
+				vertices.push_back((float)j); // Z
 			}
 		}
 		std::cout << "Loaded " << vertices.size() / 3 << " vertices" << std::endl;
@@ -171,7 +281,7 @@ private:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 
-		unsigned char* data = stbi_load("textures/512x512/Grass/Grass_08-512x512.png", &t_width, &t_height, &t_nrChannels, 0);
+		unsigned char* data = stbi_load("textures/512x512/Dirt/Dirt_18-512x512.png", &t_width, &t_height, &t_nrChannels, 0);
 		if (data)
 		{
 			if (t_nrChannels == 1)
@@ -200,8 +310,8 @@ private:
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-
-		data = stbi_load("textures/512x512/Grass/Grass_19-512x512.png", &t_width, &t_height, &t_nrChannels, 0);
+		
+		data = stbi_load("textures/512x512/Grass/Grass_08-512x512.png", &t_width, &t_height, &t_nrChannels, 0);
 		if (data)
 		{
 			if (t_nrChannels == 1)
@@ -233,7 +343,7 @@ private:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-		data = stbi_load("textures/512x512/Stone/Stone_06-512x512.png", &t_width, &t_height, &t_nrChannels, 0);
+		data = stbi_load("textures/512x512/Stone/Stone_05-512x512.png", &t_width, &t_height, &t_nrChannels, 0);
 		if (data)
 		{
 			if (t_nrChannels == 1)

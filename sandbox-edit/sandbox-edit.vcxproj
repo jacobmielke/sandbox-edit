@@ -79,14 +79,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>D:\Programming\sandbox-edit\inc;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\Programming\sandbox-edit\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\lib;$(LibraryPath)</LibraryPath>
     <ExecutablePath>D:\Programming\sandbox-edit\lib;$(ExecutablePath)</ExecutablePath>
     <ExternalIncludePath>D:\Programming\sandbox-edit\inc;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>D:\Programming\sandbox-edit\inc;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\Programming\sandbox-edit\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\lib;$(LibraryPath)</LibraryPath>
     <ExecutablePath>D:\Programming\sandbox-edit\lib;$(ExecutablePath)</ExecutablePath>
     <ExternalIncludePath>D:\Programming\sandbox-edit\inc;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
@@ -157,6 +157,7 @@
     <ClCompile Include="..\inc\imgui\imgui_widgets.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="heightmap.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -175,18 +176,19 @@
     <ClInclude Include="mesh.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="options.h" />
+    <ClInclude Include="placeable.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="shader.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="f_basic.glsl" />
-    <None Include="f_instance.glsl" />
-    <None Include="f_tool.glsl" />
-    <None Include="heightmap_vertex.glsl" />
-    <None Include="heightmap_fragment.glsl" />
-    <None Include="v_basic.glsl" />
-    <None Include="v_instance.glsl" />
-    <None Include="v_tool.glsl" />
+    <None Include="shaders\f_basic.glsl" />
+    <None Include="shaders\f_instance.glsl" />
+    <None Include="shaders\f_tool.glsl" />
+    <None Include="shaders\heightmap_fragment.glsl" />
+    <None Include="shaders\heightmap_vertex.glsl" />
+    <None Include="shaders\v_basic.glsl" />
+    <None Include="shaders\v_instance.glsl" />
+    <None Include="shaders\v_tool.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

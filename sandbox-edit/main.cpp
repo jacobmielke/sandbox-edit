@@ -15,14 +15,13 @@
 #include "heightmap.h"
 #include "options.h"
 #include "instance.h"
+#include "placeable.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window, Heightmap);
-void draw_gui(Camera camera, Heightmap height_map);
-glm::mat4* create_mesh_matrix(int inst_numb, int w, int h, float dT, Heightmap map);
-float rand_float(float a, float b);
+void draw_gui(Camera camera, Heightmap height_map, int, Placeable obj);
 
 // Global Camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -68,30 +67,39 @@ int main()
     //stbi_set_flip_vertically_on_load(true);
 
     // Load shaders
-    Shader model_shader("v_basic.glsl", "f_basic.glsl");
-    Shader tool_shader("v_tool.glsl", "f_tool.glsl");
-    Shader heightmap_shader("heightmap_vertex.glsl", "heightmap_fragment.glsl");
-    Shader instance_shader("v_instance.glsl", "f_instance.glsl");
+    Shader model_shader("shaders/v_basic.glsl", "shaders/f_basic.glsl");
+    Shader tool_shader("shaders/v_tool.glsl", "shaders/f_tool.glsl");
+    Shader heightmap_shader("shaders/heightmap_vertex.glsl", "shaders/heightmap_fragment.glsl");
+    Shader instance_shader("shaders/v_instance.glsl", "shaders/f_instance.glsl");
 
     // Load models
-    Model tree("models/tree_pine/Tree.obj");
+    Model pine_tree("models/tree_pine/Tree.obj");
     Model shovel("models/shovel/shovel.obj");
     Model bucket("models/bucket/bucket.obj");
     Model grass_model("models/grass/grass.obj");
-
+    Model rock_model("models/rock/Rock.obj");
+    Model rabbit_model("models/rabbit/rabbit.obj");
+    Model water_model("models/water/water0.obj");
+    Model dock_model("models/dock/dock.obj");
+    Model boat_model("models/boat/v_boat.obj");
+    //Model dino("models/dino/dino_milimeter.obj");
+    Model house("models/house/p3d_medieval_enterable_bld-13.obj");
     // Load heightmap
     Heightmap height_map("heightmaps/512x512.png");
-
-    // Create model list
-    glm::mat4* model_list;
-    model_list = create_mesh_matrix(WORLD_MAX_TREE, height_map.width, height_map.height, 120.0f, height_map);
+    camera.Position = glm::vec3(height_map.height / 2, 3.0f, height_map.width/2); // Set default position
 
     // Create instances list
+    vector<Instance> instance_draw_stack; // This will be used in render loop
 
+    // Create Placeable
+    vector<Model> temp = { house,water_model,rabbit_model,dock_model, boat_model};
+    Placeable place_objects(temp);
 
-    Instance grass(WORLD_MAX_GRASS); // Create grass
-    grass.create_positions(height_map, height_map.width, height_map.height, 122, WORLD_SPAWN_MIN, WORLD_SPAWN_MAX);
-    grass.setup_buffer(grass_model);
+    // Create Instances to draw
+    Instance grass(1, grass_model); // Create grass
+    Instance rock(1, rock_model);
+    Instance pinetree(1, pine_tree); // Create Tree
+
 
     //imGUI
     ImGui::CreateContext();
@@ -136,24 +144,83 @@ int main()
         // Camera and view transformation
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 500.0f);
         glm::mat4 view = camera.GetViewMatrix();
-        if(CURRENT_TOOL == -1 || CURRENT_TOOL == 1)
+        if(CURRENT_TOOL == -1 || CURRENT_TOOL == 1 || CURRENT_TOOL == 0)
             camera.ray_to_world();
 
-        // Render Trees
-        model_shader.use();
-        model_shader.setMat4("projection", projection);
-        model_shader.setMat4("view", view);
-        for (unsigned int i = 0; i < WORLD_MAX_TREE; i++)
+        if (POP_STACK)
         {
-            model_shader.setMat4("model", model_list[i]);
-            tree.Draw(model_shader);
+            POP_STACK = false;
+            if (!instance_draw_stack.empty())
+            {
+                instance_draw_stack.pop_back();
+            }
+        }
+        // Check for
+        if (WORLD_PLACE_OBJECTS)
+        {
+            WORLD_PLACE_OBJECTS = false;
+
+            switch (SELECTED_ITEM_INDEX_FOLIAGE)
+            {
+            case 0: // Grass
+                grass.inst_numb = PLACE_NUMBER;
+                grass.create_positions(height_map, height_map.width, height_map.height, deltaTime, WORLD_SPAWN_MIN, WORLD_SPAWN_MAX);
+                grass.setup_buffer();
+                instance_draw_stack.push_back(grass);
+                break;
+            case 1: // Tree
+                pinetree.inst_numb = PLACE_NUMBER;
+                pinetree.create_positions(height_map, height_map.width, height_map.height, deltaTime, WORLD_SPAWN_MIN, WORLD_SPAWN_MAX);
+                pinetree.setup_buffer();
+                break;
+            case 2: // Rocks
+                rock.inst_numb = PLACE_NUMBER;
+                rock.create_positions(height_map, height_map.width, height_map.height, deltaTime, WORLD_SPAWN_MIN, WORLD_SPAWN_MAX);
+                rock.setup_buffer();
+                instance_draw_stack.push_back(rock);
+                break;
+            }
+
+            
         }
 
         // Render instances
-        instance_shader.use();
-        instance_shader.setMat4("projection", projection);
-        instance_shader.setMat4("view", view);
-        grass.draw(instance_shader, grass_model);
+        if (!instance_draw_stack.empty())
+        {
+            for (unsigned int j = 0; j < instance_draw_stack.size(); j++)
+            {
+                instance_shader.use();
+                instance_shader.setMat4("projection", projection);
+                instance_shader.setMat4("view", view);
+                instance_draw_stack[j].draw(instance_shader);
+            }
+        }
+
+        // Draw Instanced Trees 
+        model_shader.use();
+        model_shader.setMat4("projection", projection);
+        model_shader.setMat4("view", view);
+        if (pinetree.established)
+        {
+            for (unsigned int i = 0; i < pinetree.inst_numb; i++)
+            {
+                model_shader.setMat4("model", pinetree.model_matrix[i]);
+                pinetree.model[0].Draw(model_shader);
+            }
+        }
+
+        // Draw Placed Items
+        if (PLACEABLE_POP)
+        {
+            PLACEABLE_POP = false;
+            place_objects.model_matrix.pop_back();
+            place_objects.index_stack.pop_back();
+        }
+
+        model_shader.use();
+        model_shader.setMat4("projection", projection);
+        model_shader.setMat4("view", view);
+        place_objects.draw(model_shader);
 
         //Shovel Time
         if (CURRENT_TOOL == -1)
@@ -184,13 +251,37 @@ int main()
             bucket.Draw(tool_shader);
         }
 
+        if (CURRENT_TOOL == 0)
+        {
+            model_shader.use();
+            model_shader.setMat4("projection", projection);
+            model_shader.setMat4("view", view);
+            place_objects.draw_cursor(model_shader, height_map, camera.w_xpos, camera.w_ypos, camera.w_zpos);
 
-        // Render Map
+            if (PLACE_OBJECT)
+            {
+                PLACE_OBJECT = false;
+                place_objects.place();
+            }
+        }
+
+        // Heightmap
+        if (HEIGHTMAP_RELOAD)
+        {
+            HEIGHTMAP_RELOAD = false;
+            height_map.reload_heightmap(height_map.filenames[HEIGHTMAP_INDEX]);
+            camera.Position = glm::vec3(height_map.height / 2, 3.0f, height_map.width / 2); 
+        }
+        if (HEIGHTMAP_EXPORT)
+        {
+            HEIGHTMAP_EXPORT = false;
+            height_map.export_heightmap(height_map.width, height_map.height, height_map.nChannels);
+        }
+        
         heightmap_shader.use();
         height_map.activate_textures(heightmap_shader);
         glm::mat4 map = glm::mat4(1.0f);
-        map = glm::translate(map, glm::vec3(0.0f, 0.0f, 0.0f));
-        map = glm::scale(map, glm::vec3(WORLD_SCALE, WORLD_SCALE, WORLD_SCALE));
+        //map = glm::translate(map, glm::vec3(-height_map.height / 2, 0.0f, -height_map.width / 2));
         heightmap_shader.setMat4("model", map);
         heightmap_shader.setMat4("projection", projection);
         heightmap_shader.setMat4("view", view);
@@ -202,7 +293,7 @@ int main()
         height_map.draw(heightmap_shader);
         
         // Draw Gui
-        draw_gui(camera, height_map);
+        draw_gui(camera, height_map, instance_draw_stack.size(), place_objects);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -308,10 +399,11 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 }
 
 // GUI
-void draw_gui(Camera camera, Heightmap height_map)
+void draw_gui(Camera camera, Heightmap height_map, int stack_size, Placeable obj)
 {
+    static const char* inst_list[]{"Grass", "Tree", "Rock"};
     ImGui::Begin("Option Menu");
-    if (ImGui::CollapsingHeader("World Settings"))
+    if (ImGui::CollapsingHeader("Heightmap Settings"))
     {
         float x = 2.0f * (camera.xpos / SCR_WIDTH) - 1.0f;
         float y = 2.0f * -(camera.ypos / SCR_HEIGHT) + 1.0f; // Normalize
@@ -321,74 +413,94 @@ void draw_gui(Camera camera, Heightmap height_map)
         ImGui::Text("Mouse World Coords: %f x %f x %f", camera.w_xpos, camera.w_ypos, camera.w_zpos);
         ImGui::Text("Camera Coords: %f x %f x %f", camera.Position.x, camera.Position.y, camera.Position.z);
         ImGui::Checkbox("Wireframe mode", &WIREFRAME);
-        ImGui::SliderFloat("World Scale", &WORLD_SCALE, 0.01f, 5.0f);
-    }
-    if (ImGui::CollapsingHeader("Tools"))
+        ImGui::ListBox("Filename", &HEIGHTMAP_INDEX, height_map.filenames, 5);
+        if (ImGui::Button("Load Heightmap"))
+        {
+            HEIGHTMAP_RELOAD = true;
+        }
+
+        if (ImGui::Button("Export Current Heightmap"))
+        {
+
+            HEIGHTMAP_EXPORT = true;
+        }
+        
+        //ImGui::InputText("Custom File Path", CUSTOM_FILEPATH,sizeof CUSTOM_FILEPATH);
+        //if (ImGui::Button("Load Custom Heightmap"))
+        //{
+
+        //    height_map.recreate_custom(CUSTOM_FILEPATH);
+        //}
+       
+    }   
+    if (ImGui::CollapsingHeader("Terrain Tools"))
     {
+        ImGui::Text("Current Tool: %d", CURRENT_TOOL);
         ImGui::RadioButton("Raise Terrain", &CURRENT_TOOL, 1); ImGui::SameLine();
         ImGui::RadioButton("Lower Terrain", &CURRENT_TOOL, -1); ImGui::SameLine();
         ImGui::RadioButton("View Mode", &CURRENT_TOOL, 2);
-        ImGui::SliderFloat("Radius", &TOOL_RADIUS, TOOL_RADIUS_MIN, TOOL_RADIUS_MAX);
-        ImGui::SliderFloat("Intensity", &TOOL_INTENSITY, TOOL_INTENSITY_MIN, TOOL_INTENSITY_MAX);
-        ImGui::SliderFloat("Opacity", &TOOL_OPACITY, TOOL_OPACITY_MIN, TOOL_OPACITY_MAX);
+        ImGui::SliderFloat("Radius", &TOOL_RADIUS, TOOL_RADIUS_MIN, TOOL_RADIUS_MAX); 
+     
+
+        ImGui::SliderFloat("Intensity", &TOOL_INTENSITY, TOOL_INTENSITY_MIN, TOOL_INTENSITY_MAX); 
+        ImGui::InputFloat("", &TOOL_INTENSITY);
+
+        //ImGui::SliderFloat("Opacity", &TOOL_OPACITY, TOOL_OPACITY_MIN, TOOL_OPACITY_MAX); 
+        
     }
 
-    if (ImGui::CollapsingHeader("Objects"))
+    if (ImGui::CollapsingHeader("Place Objects"))
     {
-        ImGui::RadioButton("Place Mode", &CURRENT_TOOL, 2);
-        if (CURRENT_TOOL == 2) // If place mode
+        ImGui::RadioButton("Place Mode", &CURRENT_TOOL, 0);
+        if (CURRENT_TOOL == 0) // If place mode
         {
-            static const char* obj_list[]{ "tree.obj", "grass.obj", "house.obj" };
-            
-            ImGui::ListBox("Objects", &SELECTED_ITEM_INDEX, obj_list, 3);
-            ImGui::Text("Current Object : %s", obj_list[SELECTED_ITEM_INDEX]);
-            if (ImGui::Button("Mass Place Objects"))
+            static const char* obj_list[]{ "House", "Water", "Rabbit", "Dock", "Boat"};
+            ImGui::SliderInt("Object Rotation", &PLACEABLBE_ROTATION, 0, 360);
+            ImGui::SliderFloat("Object Scale", &PLACEABLE_SCALE, 0.001f, 100.0f, "%.5f"); ImGui::SameLine();
+            ImGui::InputFloat("", &PLACEABLE_SCALE);
+            ImGui::Checkbox("Clamp Y", &PLACEABLE_YSTRAIN);
+            ImGui::Checkbox("X", &PLACEABLE_ROT_X); ImGui::SameLine();
+            ImGui::Checkbox("Y", &PLACEABLE_ROT_Y); ImGui::SameLine();
+            ImGui::Checkbox("Z", &PLACEABLE_ROT_Z); 
+
+            ImGui::ListBox("Objects", &PLACEABLE_MENU_INDEX, obj_list, 5);
+            ImGui::Text("Current Object : %s", obj_list[PLACEABLE_MENU_INDEX]);
+            if (ImGui::Button("Place Object"))
             {
-                WORLD_PLACE_OBJECTS = true;
+                PLACE_OBJECT = true;
             }
-            ImGui::SliderInt("Intensity", &WORLD_PLACE_INTENSITY, WORLD_PLACE_INTENSITY_MIN, WORLD_PLACE_INTENSITY_MAX);
-            ImGui::SliderFloat("Radius", &WORLD_PLACE_RADIUS, WORLD_PLACE_RADIUS_MIN, WORLD_PLACE_RADIUS_MAX);
-            ImGui::DragFloatRange2("Min/Max Height", &WORLD_SPAWN_MIN, &WORLD_SPAWN_MAX);
+            if (ImGui::Button("Pop Object"))
+            {
+                PLACEABLE_POP = true;
+            }
+
         }
     }
     
+    if (ImGui::CollapsingHeader("Foliage  Spawn"))
+    {
+        ImGui::Text("Adjust spawn height ranges");
+        ImGui::SliderFloat("Min Spawn Height", &WORLD_SPAWN_MIN, WORLD_PLACE_MIN, WORLD_PLACE_MAX);
+        ImGui::SliderFloat("Max Spawn Height", &WORLD_SPAWN_MAX, WORLD_PLACE_MIN, WORLD_PLACE_MAX);
+        ImGui::InputFloat("Place Offset", &WORLD_PLACE_OFFSET);
+        ImGui::SliderInt("Spawn Number", &PLACE_NUMBER, PLACE_NUMBER_MIN, PLACE_NUMBER_MAX); ImGui::SameLine();
+        ImGui::InputInt("", &PLACE_NUMBER);
+        ImGui::ListBox("Foliage Objects", &SELECTED_ITEM_INDEX_FOLIAGE, inst_list, 3);
+        ImGui::Text("Current Object : %s", inst_list[SELECTED_ITEM_INDEX_FOLIAGE]);
+        if (ImGui::Button("Mass Place Objects"))
+        {
+            WORLD_PLACE_OBJECTS = true;
+        }
+        ImGui::Text("Stack size: %d", stack_size);
+        if (ImGui::Button("Pop Stack"))
+        {
+            POP_STACK = true;
+        }
+
+        
+    }
     ImGui::End();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-}
-
-
-glm::mat4* create_mesh_matrix(int inst_numb, int w, int h, float dT, Heightmap map)
-{
-    srand(dT);
-    glm::mat4* model_matrix_loc = new glm::mat4[inst_numb];
-    glm::vec3* random_point = new glm::vec3[inst_numb]; 
-    float scale;
-    for (unsigned int i = 0; i < inst_numb; i++) // For every instance generate random x and z points
-    {
-        int width = w / 2;
-        int height = h / 2;
-        float x = rand() % (width + 1 - (-width)) + (-width);
-        float z = rand() % (height + 1 - (-height)) + (-height);
-        float y = map.grab_height(x,z) - 0.2f;
-        glm::mat4 curr_model = glm::mat4(1.0f);
-        curr_model = glm::translate(curr_model, glm::vec3(x, y, z));
-        
-        scale = rand_float(0.4f, 0.8f);
-        curr_model = glm::scale(curr_model, glm::vec3(scale));
-
-        float rot = (rand() % 360);
-        curr_model = glm::rotate(curr_model, rot, glm::vec3(0, 1, 0));
-
-        model_matrix_loc[i] = curr_model;
-    }
-
-    return model_matrix_loc;
-}
-
-
-float rand_float(float a, float b)
-{
-    return ((b - a) * ((float)rand() / RAND_MAX)) + a;
 }

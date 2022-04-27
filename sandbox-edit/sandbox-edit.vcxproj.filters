@@ -48,6 +48,9 @@
     <ClCompile Include="glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="heightmap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shader.h">
@@ -101,30 +104,33 @@
     <ClInclude Include="instance.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="placeable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="f_basic.glsl">
+    <None Include="shaders\f_basic.glsl">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="v_basic.glsl">
+    <None Include="shaders\f_instance.glsl">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="heightmap_vertex.glsl">
+    <None Include="shaders\f_tool.glsl">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="heightmap_fragment.glsl">
+    <None Include="shaders\heightmap_fragment.glsl">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="f_tool.glsl">
+    <None Include="shaders\heightmap_vertex.glsl">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="v_tool.glsl">
+    <None Include="shaders\v_basic.glsl">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="v_instance.glsl">
+    <None Include="shaders\v_instance.glsl">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="f_instance.glsl">
+    <None Include="shaders\v_tool.glsl">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

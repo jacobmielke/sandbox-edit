@@ -28,5 +28,3 @@ sandbox-edit
 - Daniel G. Aliaga
 - [GLFW](https://www.glfw.org/download.html)
 - [Open Asset Loader](https://assimp-docs.readthedocs.io/en/v5.1.0/)
-- [Pine Tree](https://free3d.com/3d-model/green-tree-41755.html)
-- [Shovel](https://sketchfab.com/3d-models/shovel-b4c2a8dc099a4e02ac40cff7f6490c27)
