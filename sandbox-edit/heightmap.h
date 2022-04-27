@@ -13,6 +13,9 @@ public:
 	std::vector<unsigned> indices;
 	std::vector<glm::vec2> uv;
 	const char* filenames[5]{ "heightmaps/32x32.png" ,"heightmaps/128x128.png", "heightmaps/512x512.png", "heightmaps/small.png", "heightmaps/512x512_blank.png"};
+	const char* texture_names[3]{ "textures/512x512/Dirt/Dirt_18-512x512.png","textures/512x512/Grass/Grass_08-512x512.png","textures/512x512/Stone/Stone_05-512x512.png" }; // Hillside
+	//const char* texture_names[3]{ "textures/512x512/snow.jpg","textures/512x512/snow.jpg","textures/512x512/Stone/Stone_05-512x512.png" }; // Snow
+	//const char* texture_names[3]{ "textures/512x512/Dirt/Dirt_14-512x512.png","textures/512x512/Dirt/Dirt_12-512x512.png","textures/512x512/Stone/Stone_03-512x512.png" }; // Desert
 	Heightmap(const char* path);
 
 	void reload_heightmap(const char* path);

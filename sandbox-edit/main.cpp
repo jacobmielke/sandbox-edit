@@ -81,7 +81,8 @@ int main()
     Model water_model("models/water/water0.obj");
     Model dock_model("models/dock/dock.obj");
     Model boat_model("models/boat/v_boat.obj");
-    Model cactus_model("models/cactus/cactus.obj");
+    Model cactus_model("models/cactus/cactus_dae.obj");
+    Model snowman_model("models/snowman/snowman.obj");
     Model house("models/house/p3d_medieval_enterable_bld-13.obj");
 
     // Load heightmap
@@ -92,7 +93,7 @@ int main()
     vector<Instance> instance_draw_stack; // This will be used in render loop
 
     // Create Placeable
-    vector<Model> temp = { house,water_model,rabbit_model,dock_model,boat_model,cactus_model};
+    vector<Model> temp = { house,water_model,rabbit_model,dock_model,boat_model,cactus_model, snowman_model};
     Placeable place_objects(temp);
 
     // Create Instances to draw
@@ -455,7 +456,7 @@ void draw_gui(Camera camera, Heightmap height_map, int stack_size, Placeable obj
         ImGui::RadioButton("Place Mode", &CURRENT_TOOL, 0);
         if (CURRENT_TOOL == 0) // If place mode
         {
-            static const char* obj_list[]{ "House", "Water", "Rabbit", "Dock", "Boat", "Cactus"};
+            static const char* obj_list[]{ "House", "Water", "Rabbit", "Dock", "Boat", "Cactus", "Snowman"};
             ImGui::SliderInt("Object Rotation", &PLACEABLBE_ROTATION, 0, 360); ImGui::SameLine();
             ImGui::RadioButton("View Mode", &CURRENT_TOOL, 2);
             ImGui::SliderFloat("Object Scale", &PLACEABLE_SCALE, 0.001f, 100.0f, "%.5f"); ImGui::SameLine();
@@ -465,7 +466,7 @@ void draw_gui(Camera camera, Heightmap height_map, int stack_size, Placeable obj
             ImGui::Checkbox("Y", &PLACEABLE_ROT_Y); ImGui::SameLine();
             ImGui::Checkbox("Z", &PLACEABLE_ROT_Z); 
 
-            ImGui::ListBox("Objects", &PLACEABLE_MENU_INDEX, obj_list, 6);
+            ImGui::ListBox("Objects", &PLACEABLE_MENU_INDEX, obj_list, 7);
             ImGui::Text("Current Object : %s", obj_list[PLACEABLE_MENU_INDEX]);
             if (ImGui::Button("Place Object"))
             {

@@ -305,7 +305,7 @@ void Heightmap::load_texture()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 
-	unsigned char* data = stbi_load("textures/512x512/Dirt/Dirt_18-512x512.png", &t_width, &t_height, &t_nrChannels, 0);
+	unsigned char* data = stbi_load(texture_names[0], &t_width, &t_height, &t_nrChannels, 0);
 	if (data)
 	{
 		if (t_nrChannels == 1)
@@ -335,7 +335,7 @@ void Heightmap::load_texture()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-	data = stbi_load("textures/512x512/Grass/Grass_08-512x512.png", &t_width, &t_height, &t_nrChannels, 0);
+	data = stbi_load(texture_names[1], &t_width, &t_height, &t_nrChannels, 0);
 	if (data)
 	{
 		if (t_nrChannels == 1)
@@ -367,7 +367,7 @@ void Heightmap::load_texture()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-	data = stbi_load("textures/512x512/Stone/Stone_05-512x512.png", &t_width, &t_height, &t_nrChannels, 0);
+	data = stbi_load(texture_names[2], &t_width, &t_height, &t_nrChannels, 0);
 	if (data)
 	{
 		if (t_nrChannels == 1)
