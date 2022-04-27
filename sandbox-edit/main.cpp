@@ -3,7 +3,6 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "stb_image.h"
 #include "shader.h"
 #include "filesystem.h"
 #include <iostream>
@@ -82,8 +81,9 @@ int main()
     Model water_model("models/water/water0.obj");
     Model dock_model("models/dock/dock.obj");
     Model boat_model("models/boat/v_boat.obj");
-    //Model dino("models/dino/dino_milimeter.obj");
+    Model cactus_model("models/cactus/cactus.obj");
     Model house("models/house/p3d_medieval_enterable_bld-13.obj");
+
     // Load heightmap
     Heightmap height_map("heightmaps/512x512.png");
     camera.Position = glm::vec3(height_map.height / 2, 3.0f, height_map.width/2); // Set default position
@@ -92,7 +92,7 @@ int main()
     vector<Instance> instance_draw_stack; // This will be used in render loop
 
     // Create Placeable
-    vector<Model> temp = { house,water_model,rabbit_model,dock_model, boat_model};
+    vector<Model> temp = { house,water_model,rabbit_model,dock_model,boat_model,cactus_model};
     Placeable place_objects(temp);
 
     // Create Instances to draw
@@ -144,7 +144,7 @@ int main()
         // Camera and view transformation
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 500.0f);
         glm::mat4 view = camera.GetViewMatrix();
-        if(CURRENT_TOOL == -1 || CURRENT_TOOL == 1 || CURRENT_TOOL == 0)
+        if(CURRENT_TOOL == -1 || CURRENT_TOOL == 1 || CURRENT_TOOL == 0 || CURRENT_TOOL == 3)
             camera.ray_to_world();
 
         if (POP_STACK)
@@ -237,7 +237,7 @@ int main()
         }
 
         // Bucket time
-        if (CURRENT_TOOL == 1)
+        if (CURRENT_TOOL == 1 || CURRENT_TOOL == 3)
         {
             tool_shader.use();
             glm::mat4 buck = glm::mat4(1.0f);
@@ -438,6 +438,7 @@ void draw_gui(Camera camera, Heightmap height_map, int stack_size, Placeable obj
         ImGui::Text("Current Tool: %d", CURRENT_TOOL);
         ImGui::RadioButton("Raise Terrain", &CURRENT_TOOL, 1); ImGui::SameLine();
         ImGui::RadioButton("Lower Terrain", &CURRENT_TOOL, -1); ImGui::SameLine();
+        ImGui::RadioButton("Average Terrain", &CURRENT_TOOL, 3); ImGui::SameLine();
         ImGui::RadioButton("View Mode", &CURRENT_TOOL, 2);
         ImGui::SliderFloat("Radius", &TOOL_RADIUS, TOOL_RADIUS_MIN, TOOL_RADIUS_MAX); 
      
@@ -454,8 +455,9 @@ void draw_gui(Camera camera, Heightmap height_map, int stack_size, Placeable obj
         ImGui::RadioButton("Place Mode", &CURRENT_TOOL, 0);
         if (CURRENT_TOOL == 0) // If place mode
         {
-            static const char* obj_list[]{ "House", "Water", "Rabbit", "Dock", "Boat"};
-            ImGui::SliderInt("Object Rotation", &PLACEABLBE_ROTATION, 0, 360);
+            static const char* obj_list[]{ "House", "Water", "Rabbit", "Dock", "Boat", "Cactus"};
+            ImGui::SliderInt("Object Rotation", &PLACEABLBE_ROTATION, 0, 360); ImGui::SameLine();
+            ImGui::RadioButton("View Mode", &CURRENT_TOOL, 2);
             ImGui::SliderFloat("Object Scale", &PLACEABLE_SCALE, 0.001f, 100.0f, "%.5f"); ImGui::SameLine();
             ImGui::InputFloat("", &PLACEABLE_SCALE);
             ImGui::Checkbox("Clamp Y", &PLACEABLE_YSTRAIN);
@@ -463,7 +465,7 @@ void draw_gui(Camera camera, Heightmap height_map, int stack_size, Placeable obj
             ImGui::Checkbox("Y", &PLACEABLE_ROT_Y); ImGui::SameLine();
             ImGui::Checkbox("Z", &PLACEABLE_ROT_Z); 
 
-            ImGui::ListBox("Objects", &PLACEABLE_MENU_INDEX, obj_list, 5);
+            ImGui::ListBox("Objects", &PLACEABLE_MENU_INDEX, obj_list, 6);
             ImGui::Text("Current Object : %s", obj_list[PLACEABLE_MENU_INDEX]);
             if (ImGui::Button("Place Object"))
             {

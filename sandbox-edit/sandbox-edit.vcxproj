@@ -159,6 +159,8 @@
     <ClCompile Include="glad.c" />
     <ClCompile Include="heightmap.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="options.cpp" />
+    <ClCompile Include="stb.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\imgui\imconfig.h" />

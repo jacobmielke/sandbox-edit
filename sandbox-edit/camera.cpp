@@ -40,11 +40,11 @@ void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constr
 
 void Camera::ProcessMouseScroll(float yoffset)
 {
-	tool_distance += (float)yoffset;
+	tool_distance += (float)yoffset * 3.0f;
 	if (tool_distance < 1.0f)
 		tool_distance = 1.0f;
-	if (tool_distance > 100.0f)
-		tool_distance = 100.0f;
+	if (tool_distance > 400.0f)
+		tool_distance = 400.0f;
 }
 
 void Camera::updateCameraVectors()
