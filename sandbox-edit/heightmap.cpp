@@ -266,10 +266,8 @@ void Heightmap::process_heightmap()
 		}
 	}
 
-	std::cout << "Loaded " << indices.size() << " indices" << std::endl;
 	numStrips = (height - 1) / res;
 	numTrisPerStrip = (width / res) * 2 - 2;
-	std::cout << "Created lattice of " << numStrips << " strips with " << numTrisPerStrip << " triangles each" << std::endl;
 	std::cout << "Created " << numStrips * numTrisPerStrip << " triangles total" << std::endl;
 
 	// OpenGL buffer Setup
