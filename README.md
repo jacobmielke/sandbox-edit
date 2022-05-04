@@ -29,4 +29,4 @@ sandbox-edit
 - [GLFW](https://www.glfw.org/download.html)
 - [Open Asset Loader](https://assimp-docs.readthedocs.io/en/v5.1.0/)
 
-> This was designed and created to teach myself openGL. Feel free to modify and alter as needed; but, do not mistake your work for others. Stay honest, Boiler Up! >
+> This was designed and created to teach myself openGL. Feel free to modify and alter as needed; but, do not mistake your work for others. Stay honest, Boiler Up!
